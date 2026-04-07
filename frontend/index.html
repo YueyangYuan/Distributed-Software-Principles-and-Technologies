@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秒杀系统</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header><h1>🔥 限时秒杀</h1><div id="user-info"></div></header>
+
+        <!-- 登录/注册区 -->
+        <div id="auth-section" class="card">
+            <h2>用户登录</h2>
+            <input id="username" placeholder="用户名" />
+            <input id="password" type="password" placeholder="密码" />
+            <div class="btn-group">
+                <button onclick="login()">登录</button>
+                <button onclick="register()" class="btn-secondary">注册</button>
+            </div>
+        </div>
+
+        <!-- 商品列表 -->
+        <div id="product-section" class="card" style="display:none">
+            <h2>秒杀商品</h2>
+            <div id="product-list"></div>
+        </div>
+
+        <!-- 我的订单 -->
+        <div id="order-section" class="card" style="display:none">
+            <h2>我的订单</h2>
+            <button onclick="loadOrders()">刷新订单</button>
+            <div id="order-list"></div>
+        </div>
+
+        <div id="msg" class="msg"></div>
+    </div>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

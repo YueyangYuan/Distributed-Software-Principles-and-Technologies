@@ -1,0 +1,177 @@
+version: '3.8'
+
+services:
+  # ============ 基础设施 ============
+  mysql-master:
+    image: mysql:8.0
+    container_name: seckill-mysql-master
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql-master-data:/var/lib/mysql
+    command: --server-id=1 --log-bin=mysql-bin --binlog-format=ROW --gtid-mode=ON --enforce-gtid-consistency=ON
+    networks:
+      - seckill-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mysql-slave:
+    image: mysql:8.0
+    container_name: seckill-mysql-slave
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+    ports:
+      - "3307:3306"
+    command: --server-id=2 --log-bin=mysql-bin --binlog-format=ROW --gtid-mode=ON --enforce-gtid-consistency=ON --read-only=1
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    networks:
+      - seckill-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: seckill-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - seckill-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: seckill-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - seckill-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: seckill-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - seckill-net
+
+  # ============ 微服务 ============
+  user-service-1:
+    build: ./seckill-user
+    container_name: user-service-1
+    environment:
+      SERVER_PORT: 8081
+      MYSQL_HOST: mysql-master
+      REDIS_HOST: redis
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    networks:
+      - seckill-net
+
+  user-service-2:
+    build: ./seckill-user
+    container_name: user-service-2
+    environment:
+      SERVER_PORT: 8081
+      MYSQL_HOST: mysql-master
+      REDIS_HOST: redis
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    networks:
+      - seckill-net
+
+  product-service:
+    build: ./seckill-product
+    container_name: product-service
+    environment:
+      SERVER_PORT: 8082
+      MYSQL_HOST: mysql-master
+      REDIS_HOST: redis
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    networks:
+      - seckill-net
+
+  inventory-service:
+    build: ./seckill-inventory
+    container_name: inventory-service
+    environment:
+      SERVER_PORT: 8083
+      MYSQL_HOST: mysql-master
+      REDIS_HOST: redis
+      KAFKA_SERVERS: kafka:9092
+    depends_on:
+      - kafka
+      - mysql-master
+    networks:
+      - seckill-net
+
+  order-service-1:
+    build: ./seckill-order
+    container_name: order-service-1
+    environment:
+      SERVER_PORT: 8084
+      MYSQL_HOST: mysql-master
+      REDIS_HOST: redis
+      KAFKA_SERVERS: kafka:9092
+      WORKER_ID: 1
+    depends_on:
+      - kafka
+      - mysql-master
+    networks:
+      - seckill-net
+
+  order-service-2:
+    build: ./seckill-order
+    container_name: order-service-2
+    environment:
+      SERVER_PORT: 8084
+      MYSQL_HOST: mysql-master
+      REDIS_HOST: redis
+      KAFKA_SERVERS: kafka:9092
+      WORKER_ID: 2
+    depends_on:
+      - kafka
+      - mysql-master
+    networks:
+      - seckill-net
+
+  # ============ Nginx 负载均衡 ============
+  nginx:
+    image: nginx:alpine
+    container_name: seckill-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - user-service-1
+      - user-service-2
+      - product-service
+      - order-service-1
+      - order-service-2
+      - inventory-service
+    networks:
+      - seckill-net
+
+volumes:
+  mysql-master-data:
+
+networks:
+  seckill-net:
+    driver: bridge
