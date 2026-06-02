@@ -4,6 +4,13 @@ server:
 spring:
   application:
     name: seckill-inventory
+  cloud:
+    service-registry:
+      auto-registration:
+        fail-fast: false
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/seckill_inventory?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: ${MYSQL_USER:root}

@@ -49,6 +49,6 @@ public class SeckillController {
 
     @GetMapping("/health")
     public Result<String> health() {
-        return Result.ok("Order Service is running on port ${server.port}");
+        return Result.ok("Order Service is running");
     }
 }

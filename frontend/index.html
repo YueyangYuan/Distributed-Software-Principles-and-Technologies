@@ -1,36 +1,33 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>秒杀系统</title>
+    <title>Seckill Demo</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <div class="container">
-        <header><h1>🔥 限时秒杀</h1><div id="user-info"></div></header>
+        <header><h1>Flash Sale Demo</h1><div id="user-info"></div></header>
 
-        <!-- 登录/注册区 -->
         <div id="auth-section" class="card">
-            <h2>用户登录</h2>
-            <input id="username" placeholder="用户名" />
-            <input id="password" type="password" placeholder="密码" />
+            <h2>User Login</h2>
+            <input id="username" placeholder="Username" />
+            <input id="password" type="password" placeholder="Password" />
             <div class="btn-group">
-                <button onclick="login()">登录</button>
-                <button onclick="register()" class="btn-secondary">注册</button>
+                <button onclick="login()">Login</button>
+                <button onclick="register()" class="btn-secondary">Register</button>
             </div>
         </div>
 
-        <!-- 商品列表 -->
         <div id="product-section" class="card" style="display:none">
-            <h2>秒杀商品</h2>
+            <h2>Products</h2>
             <div id="product-list"></div>
         </div>
 
-        <!-- 我的订单 -->
         <div id="order-section" class="card" style="display:none">
-            <h2>我的订单</h2>
-            <button onclick="loadOrders()">刷新订单</button>
+            <h2>My Orders</h2>
+            <button onclick="loadOrders()">Refresh Orders</button>
             <div id="order-list"></div>
         </div>
 

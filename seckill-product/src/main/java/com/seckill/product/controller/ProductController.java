@@ -4,7 +4,14 @@ import com.seckill.common.dto.Result;
 import com.seckill.common.entity.Product;
 import com.seckill.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -30,6 +37,16 @@ public class ProductController {
     @PostMapping
     public Result<Product> createProduct(@RequestBody Product product) {
         return productService.createProduct(product);
+    }
+
+    @GetMapping("/datasource/read-route")
+    public Result<String> inspectReadRoute() {
+        return productService.inspectReadRoute();
+    }
+
+    @GetMapping("/datasource/write-route")
+    public Result<String> inspectWriteRoute() {
+        return productService.inspectWriteRoute();
     }
 
     @DeleteMapping("/cache/{id}")

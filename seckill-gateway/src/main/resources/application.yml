@@ -4,3 +4,80 @@ server:
 spring:
   application:
     name: seckill-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cloud:
+    service-registry:
+      auto-registration:
+        fail-fast: false
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://seckill-user
+          predicates:
+            - Path=/api/user/**
+        - id: product-service
+          uri: lb://seckill-product
+          predicates:
+            - Path=/api/product/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: productCircuitBreaker
+                fallbackUri: forward:/fallback/product
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@ipKeyResolver}"
+                redis-rate-limiter.replenishRate: 8
+                redis-rate-limiter.burstCapacity: 16
+        - id: seckill-order-protected
+          uri: lb://seckill-order
+          predicates:
+            - Path=/api/order/seckill
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: seckillCircuitBreaker
+                fallbackUri: forward:/fallback/seckill
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+        - id: order-service
+          uri: lb://seckill-order
+          predicates:
+            - Path=/api/order/**
+        - id: inventory-service
+          uri: lb://seckill-inventory
+          predicates:
+            - Path=/api/inventory/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      productCircuitBreaker:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 4
+        permittedNumberOfCallsInHalfOpenState: 2
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+      seckillCircuitBreaker:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 4
+        permittedNumberOfCallsInHalfOpenState: 2
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50

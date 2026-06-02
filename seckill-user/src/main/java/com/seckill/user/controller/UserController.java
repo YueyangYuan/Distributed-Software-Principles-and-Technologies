@@ -7,6 +7,7 @@ import com.seckill.common.entity.User;
 import com.seckill.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -17,6 +18,8 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    @Value("${HOSTNAME:local-user-service}")
+    private String instanceId;
 
     @PostMapping("/register")
     public Result<Map<String, Object>> register(@Valid @RequestBody UserRegisterDTO dto) {
@@ -34,7 +37,11 @@ public class UserController {
     }
 
     @GetMapping("/health")
-    public Result<String> health() {
-        return Result.ok("User Service is running on port ${server.port}");
+    public Result<Map<String, String>> health() {
+        return Result.ok(Map.of(
+                "status", "UP",
+                "service", "seckill-user",
+                "instance", instanceId
+        ));
     }
 }

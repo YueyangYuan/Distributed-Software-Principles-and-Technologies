@@ -4,15 +4,30 @@ server:
 spring:
   application:
     name: seckill-product
-  datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/seckill_product?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: ${MYSQL_USER:root}
-    password: ${MYSQL_PASSWORD:root123}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+  cloud:
+    service-registry:
+      auto-registration:
+        fail-fast: false
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+
+app:
+  datasource:
+    master:
+      url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/seckill_product?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      username: ${MYSQL_USER:root}
+      password: ${MYSQL_PASSWORD:root123}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    slave:
+      url: jdbc:mysql://${MYSQL_SLAVE_HOST:${MYSQL_HOST:localhost}}:${MYSQL_SLAVE_PORT:${MYSQL_PORT:3306}}/seckill_product?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      username: ${MYSQL_SLAVE_USER:${MYSQL_USER:root}}
+      password: ${MYSQL_SLAVE_PASSWORD:${MYSQL_PASSWORD:root123}}
+      driver-class-name: com.mysql.cj.jdbc.Driver
 
 mybatis-plus:
   global-config:
